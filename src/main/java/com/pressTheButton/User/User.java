@@ -1,23 +1,25 @@
 package com.pressTheButton.User;
 
+import com.stormpath.sdk.account.Account;
+
 /**
  * Created by Tyler on 2016-08-10.
  */
 public class User {
-    private final long id;
-    private final String name;
+    private final String id;
+    private final Account account;
 
-    public User(long id,
-                String name) {
+    public User(String id,
+                Account account) {
         this.id = id;
-        this.name = name;
+        this.account = account;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public String getName(){
-        return name;
+    public Account getAccount(){
+        return account;
     }
 }
