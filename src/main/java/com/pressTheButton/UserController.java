@@ -32,27 +32,37 @@ public class UserController {
         return ResponseEntity.ok(message);
     }
 
-    @RequestMapping("/createUser")
-    public ResponseEntity<User> createUser (@RequestHeader("username") String username,
-                                              @RequestHeader("password") String password){
-        if (application == null || client == null) {
-            authorizeApplication();
-        }
-
-        Account account = client.instantiate(Account.class);
-
-        account.setGivenName(username);
-        account.setSurname(username);
-        account.setUsername(username); //optional, defaults to email if unset
-        account.setEmail(username);
-        account.setPassword(password);
-
-        application.createAccount(account);
-
-        User newUser = new User(username, account);
-
-        return ResponseEntity.ok(newUser);
+    @RequestMapping("/")
+    public ResponseEntity<Void> landing(){
+        return ResponseEntity.ok(null);
     }
+
+    @RequestMapping("/banana")
+    public ResponseEntity<String> banana(@RequestParam(value="message", defaultValue="test") String message){
+        return ResponseEntity.ok(message);
+    }
+
+//    @RequestMapping("/createUser")
+//    public ResponseEntity<User> createUser (@RequestHeader("username") String username,
+//                                              @RequestHeader("password") String password){
+//        if (application == null || client == null) {
+//            authorizeApplication();
+//        }
+//
+//        Account account = client.instantiate(Account.class);
+//
+//        account.setGivenName(username);
+//        account.setSurname(username);
+//        account.setUsername(username); //optional, defaults to email if unset
+//        account.setEmail(username);
+//        account.setPassword(password);
+//
+//        application.createAccount(account);
+//
+//        User newUser = new User(username, account);
+//
+//        return ResponseEntity.ok(newUser);
+//    }
 
     private Application authorizeApplication() {
         ClientBuilder builder = Clients.builder();
