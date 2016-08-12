@@ -10,8 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class UserController {
+
     @RequestMapping("/test")
     public ResponseEntity<String> test(@RequestParam(value="message", defaultValue="test") String message){
         return ResponseEntity.ok(message);
+    }
+    @RequestMapping("/")
+    public ResponseEntity<Void> home(){
+        return ResponseEntity.ok(null);
     }
 }
