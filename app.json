@@ -1,0 +1,27 @@
+{
+  "name": "push-the-button-backend",
+  "description": "",
+  "scripts": {
+  },
+  "env": {
+    "STORMPATH_API_KEY_ID": {
+      "required": true
+    },
+    "STORMPATH_API_KEY_SECRET": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "heroku-postgresql"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/java"
+    }
+  ]
+}
