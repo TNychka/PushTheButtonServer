@@ -8,19 +8,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class User {
     private final String id;
-    private final String name;
 
     public User(String id,
                 String name) {
         this.id = id;
-        this.account = account;
     }
 
     public String getId() {
         return id;
-    }
-
-    public Account getAccount(){
-        return account;
     }
 }
