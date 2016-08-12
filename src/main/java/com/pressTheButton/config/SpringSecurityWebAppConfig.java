@@ -7,14 +7,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import static com.stormpath.spring.config.StormpathWebSecurityConfigurer.stormpath;
 
 /**
- * Created by Tyler on 2016-08-10.
+ * Created by Tyler on 2016-08-11.
  */
+
 @Configuration
 public class SpringSecurityWebAppConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.apply(stormpath()).and()
-            .authorizeRequests()
-            .antMatchers("/**").permitAll();
+                .authorizeRequests()
+                .antMatchers("/").permitAll();
     }
 }

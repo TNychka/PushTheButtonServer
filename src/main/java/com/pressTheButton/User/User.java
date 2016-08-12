@@ -1,16 +1,17 @@
 package com.pressTheButton.User;
 
-import com.stormpath.sdk.account.Account;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by Tyler on 2016-08-10.
  */
+@Component
 public class User {
     private final String id;
-    private final Account account;
+    private final String name;
 
     public User(String id,
-                Account account) {
+                String name) {
         this.id = id;
         this.account = account;
     }
