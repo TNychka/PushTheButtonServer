@@ -24,10 +24,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
 
-    @RequestMapping("/test")
-    public ResponseEntity<String> test(@RequestParam(value="message", defaultValue="test") String message){
+    @RequestMapping("/message")
+    public ResponseEntity<String> message(@RequestParam(value="message", defaultValue="test") String message){
         return ResponseEntity.ok(message);
     }
+
+    @RequestMapping("/test")
+    public ResponseEntity<Void> test(){
+        return ResponseEntity.ok(null);
+    }
+
     @RequestMapping("/")
     public ResponseEntity<Void> home(){
         return ResponseEntity.ok(null);
