@@ -2,7 +2,7 @@ package com.pressTheButton;
 
 import com.pressTheButton.Auth.StormpathApp;
 import com.stormpath.sdk.account.Account;
-import com.stormpath.sdk.account.AccountList;
+import com.stormpath.sdk.servlet.account.AccountResolver;
 import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by Tyler on 2016-08-10.
@@ -27,23 +26,24 @@ public class UserController {
     @Autowired
     private StormpathApp stormpathApp;
 
-    private final Logger logger = LoggerFactory.getLogger(UserController.class);;
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-
-
-    @RequestMapping(value = "/me", method = RequestMethod.GET)
-    public ResponseEntity<AccountList> me(){
-        Map<String, Object> queryParams = new HashMap<String, Object>();
-        queryParams.put("username", "tk421");
-        AccountList accounts = stormpathApp.getApplication().getAccounts(queryParams);
-        for (Account acct : accounts) {
-            logger.debug("Found Account: " + acct.getHref() + ", " + acct.getEmail());
+    @RequestMapping(value = "/userInfo", method = RequestMethod.GET)
+    public ResponseEntity<String> user(HttpServletRequest req){
+        Account account = AccountResolver.INSTANCE.getAccount(req);
+        logger.debug("Account requested {}, req {}", account, req);
+        if (account != null) {
+            return ResponseEntity.ok(account.getFullName());
         }
-        return ResponseEntity.ok(accounts);
+        return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
     @RequestMapping("/")
-    public ResponseEntity<Void> home(){
-        return ResponseEntity.ok(null);
+    public ResponseEntity<String> home(HttpServletRequest req){
+        ResponseEntity<String> entity = user(req);
+        if (entity.getStatusCode() != HttpStatus.OK){
+            return ResponseEntity.ok("Hey, just a reminder to login!");
+        }
+        return ResponseEntity.ok("Thanks for logging in! :)");
     }
 }
