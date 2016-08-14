@@ -1,41 +1,49 @@
 package com.pressTheButton;
 
-import com.pressTheButton.User.User;
+import com.pressTheButton.Auth.StormpathApp;
 import com.stormpath.sdk.account.Account;
-import com.stormpath.sdk.application.Application;
-import com.stormpath.sdk.application.ApplicationList;
-import com.stormpath.sdk.application.Applications;
-import com.stormpath.sdk.client.Client;
-import com.stormpath.sdk.client.ClientBuilder;
-import com.stormpath.sdk.client.Clients;
-import com.stormpath.sdk.directory.CustomData;
-import com.stormpath.sdk.tenant.Tenant;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import com.stormpath.sdk.servlet.account.AccountResolver;
+import groovy.util.logging.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by Tyler on 2016-08-10.
  */
 @RestController
+@Slf4j
 public class UserController {
 
-    @RequestMapping("/message")
-    public ResponseEntity<String> message(@RequestParam(value="message", defaultValue="test") String message){
-        return ResponseEntity.ok(message);
-    }
+    @Autowired
+    private StormpathApp stormpathApp;
 
-    @RequestMapping("/test")
-    public ResponseEntity<Void> test(){
-        return ResponseEntity.ok(null);
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    @RequestMapping(value = "/userInfo", method = RequestMethod.GET)
+    public ResponseEntity<String> user(HttpServletRequest req){
+        Account account = AccountResolver.INSTANCE.getAccount(req);
+        logger.debug("Account requested {}, req {}", account, req);
+        if (account != null) {
+            return ResponseEntity.ok(account.getFullName());
+        }
+        return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
     @RequestMapping("/")
-    public ResponseEntity<Void> home(){
-        return ResponseEntity.ok(null);
+    public ResponseEntity<String> home(HttpServletRequest req){
+        ResponseEntity<String> entity = user(req);
+        if (entity.getStatusCode() != HttpStatus.OK){
+            return ResponseEntity.ok("Hey, just a reminder to login!");
+        }
+        return ResponseEntity.ok("Thanks for logging in! :)");
     }
 }
