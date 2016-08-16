@@ -28,21 +28,50 @@ public class UserController {
     private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @RequestMapping(value = "/userInfo", method = RequestMethod.GET)
-    public ResponseEntity<String> user(HttpServletRequest req){
-        Account account = AccountResolver.INSTANCE.getAccount(req);
-        logger.debug("Account requested {}, req {}", account, req);
-        if (account != null) {
-            return ResponseEntity.ok(account.getFullName());
+    public ResponseEntity<String> user(HttpServletRequest req) {
+        Account account = getAccount(req);
+        if (account == null) {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        return ResponseEntity.ok(account.getFullName());
+    }
+
+    @RequestMapping(value = "/startGame", method = RequestMethod.GET)
+    public ResponseEntity<Void> startGame(HttpServletRequest req) {
+        return ResponseEntity.ok(null);
+    }
+
+    @RequestMapping(value = "/getGame", method = RequestMethod.GET)
+    public ResponseEntity<Void> getGame(HttpServletRequest req) {
+        return ResponseEntity.ok(null);
+    }
+
+    @RequestMapping(value = "/updateGameStatus", method = RequestMethod.PATCH)
+    public ResponseEntity<Void> updateGameStatus(HttpServletRequest req) {
+        return ResponseEntity.ok(null);
+    }
+
+    @RequestMapping(value = "/endGame", method = RequestMethod.POST)
+    public ResponseEntity<Void> endGame(HttpServletRequest req) {
+        return ResponseEntity.ok(null);
+    }
+
+    @RequestMapping(value = "/getLeaderBoard", method = RequestMethod.GET)
+    public ResponseEntity<Void> getLeaderBoard(HttpServletRequest req) {
+        return ResponseEntity.ok(null);
     }
 
     @RequestMapping("/")
     public ResponseEntity<String> home(HttpServletRequest req){
-        ResponseEntity<String> entity = user(req);
-        if (entity.getStatusCode() != HttpStatus.OK){
+        if (getAccount(req) == null){
             return ResponseEntity.ok("Hey, just a reminder to login!");
         }
         return ResponseEntity.ok("Thanks for logging in! :)");
+    }
+
+    private Account getAccount(HttpServletRequest req){
+        Account account = AccountResolver.INSTANCE.getAccount(req);
+        logger.debug("Account requested {}, req {}", account, req);
+        return account;
     }
 }
