@@ -1,5 +1,6 @@
 package com.pressTheButton.Game;
 
+import com.pressTheButton.utils.GameUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,11 +15,33 @@ import org.joda.time.DateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GameSession {
-    static public enum gameStatus{
-        INPROGRESS, ENDED
-    }
 
     private DateTime lastUpdated;
     private Button button;
-    private final float happinessDecay = 0.5f; //change in happiness per second
+    private final float happinessDecay = 2f; //change in happiness per second
+    private GameUtils.GameStatus gameStatus = GameUtils.GameStatus.ENDED;
+
+    public DateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(DateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
+
+    public Button getButton() {
+        return button;
+    }
+
+    public Float getHappinessDecay() {
+        return happinessDecay;
+    }
+
+    public GameUtils.GameStatus getGameStatus(){
+        return gameStatus;
+    }
+
+    public void setGameStatus(GameUtils.GameStatus status) {
+        this.gameStatus = status;
+    }
 }

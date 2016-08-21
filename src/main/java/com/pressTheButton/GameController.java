@@ -3,21 +3,21 @@ package com.pressTheButton;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pressTheButton.Auth.StormpathApp;
 import com.pressTheButton.Game.GameSession;
+import com.pressTheButton.utils.GameUtils;
 import com.stormpath.sdk.account.Account;
 import groovy.util.logging.Slf4j;
-import org.json.JSONObject;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import lombok.AllArgsConstructor;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 
 /**
  * Created by Tyler on 2016-08-20.
@@ -30,65 +30,88 @@ public class GameController {
     @Autowired
     private StormpathApp stormpathApp;
 
+    @Autowired
+    private GameUtils gameUtils;
+
     private final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @RequestMapping(value = "/startGame", method = RequestMethod.GET)
     private ResponseEntity<GameSession> startGame(HttpServletRequest req) {
         Account account = stormpathApp.getAccount(req);
-        if(getGameStatus(req).getBody().equals(GameSession.gameStatus.ENDED)) {
+        GameUtils.GameStatus gameStatus = getGameStatus(req).getBody();
+        if(gameStatus.equals(GameUtils.GameStatus.ENDED) || gameStatus == null) {
             GameSession newGame = new GameSession();
             account.getCustomData().put("GameSession", newGame);
-            account.getCustomData().put("GameStatus", GameSession.gameStatus.INPROGRESS);
+            account.getCustomData().put("GameStatus", GameUtils.GameStatus.INPROGRESS);
             account.save();
             return ResponseEntity.ok(newGame);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
+
+    @RequestMapping(value = "/GameStatus", method = RequestMethod.GET)
+    private ResponseEntity<GameUtils.GameStatus> getGameStatus(HttpServletRequest req) {
+        Account account = stormpathApp.getAccount(req);
+        Object customData = account.getCustomData().get("GameStatus");
+        if (customData == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        String gameStatus = (String) customData;
+        log.info("Retrieving user {} game status {}", account.getUsername(), gameStatus);
+        GameUtils.GameStatus status = Enum.valueOf(GameUtils.GameStatus.class, gameStatus);
+        log.info("Retrieved user {} game status {}", account.getUsername(), gameStatus);
+        return ResponseEntity.ok(status);
+    }
+
 
     @RequestMapping(value = "/getGame", method = RequestMethod.GET)
     private ResponseEntity<GameSession> getGame(HttpServletRequest req) {
         Account account = stormpathApp.getAccount(req);
-        if(getGameStatus(req).getBody().equals(GameSession.gameStatus.ENDED)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if(getGameStatus(req).getBody().equals(GameUtils.GameStatus.ENDED)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
-
             ObjectMapper mapper = new ObjectMapper();
             GameSession gameSession = mapper.convertValue(account.getCustomData().get("GameSession"), GameSession.class);
             if (gameSession != null){
                 return ResponseEntity.ok(gameSession);
             } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
         }
     }
 
-    @RequestMapping(value = "/gameStatus", method = RequestMethod.GET)
-    private ResponseEntity<GameSession.gameStatus> getGameStatus(HttpServletRequest req) {
+
+
+    @RequestMapping(value = "/endGame", method = RequestMethod.POST)
+    private ResponseEntity<GameSession> endGame(HttpServletRequest req) {
         Account account = stormpathApp.getAccount(req);
-        log.info("Retrieving user {} game status {}", account.getUsername(), account.getCustomData().get("GameStatus"));
-        GameSession.gameStatus status = Enum.valueOf(GameSession.gameStatus.class, (String) account.getCustomData().get("GameStatus"));
-        if (status == null) {
-            status = GameSession.gameStatus.ENDED;
-            account.getCustomData().put("GameStatus", status);
-            account.save();
-        }
-        log.info("Retrieved user {} game status {}", account.getUsername(), status);
-        return ResponseEntity.ok(status);
+        account.getCustomData().put("GameSession", null);
+        account.getCustomData().put("GameStatus", GameUtils.GameStatus.ENDED);
+        account.save();
+        return ResponseEntity.ok(null);
     }
 
     @RequestMapping(value = "/updateGameStatus", method = RequestMethod.PATCH)
-    private ResponseEntity<Void> updateGameStatus(HttpServletRequest req) {
-        return ResponseEntity.ok(null);
-    }
-
-    @RequestMapping(value = "/endGame", method = RequestMethod.POST)
-    private ResponseEntity<Void> endGame(HttpServletRequest req) {
-        return ResponseEntity.ok(null);
+    private ResponseEntity<GameSession> updateGameStatus(@RequestHeader(value = "boost", required = false) Float happinessBoost,
+                                                         @RequestHeader(value = "currentHappiness", required = false) Float currentHappiness,
+                                                         HttpServletRequest req) {
+        Account account = stormpathApp.getAccount(req);
+        GameSession currentGame = getGame(req).getBody();
+        currentGame = gameUtils.updateGame(currentGame, DateTime.now(), happinessBoost, currentHappiness);
+        if (currentGame.getButton().getHappy() <= 0) {
+            return endGame(req);
+        }
+        account.getCustomData().put("GameSession", currentGame);
+        account.getCustomData().put("GameStatus", GameUtils.GameStatus.INPROGRESS);
+        account.save();
+        return ResponseEntity.ok(currentGame);
     }
 
     @RequestMapping(value = "/getLeaderBoard", method = RequestMethod.GET)
     private ResponseEntity<Void> getLeaderBoard(HttpServletRequest req) {
         return ResponseEntity.ok(null);
     }
+
+
 }

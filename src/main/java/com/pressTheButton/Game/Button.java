@@ -1,27 +1,28 @@
 package com.pressTheButton.Game;
 
+import lombok.NoArgsConstructor;
+
 import java.awt.*;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Float.max;
+
 /**
  * Created by Tyler on 2016-08-20.
  */
+
 public class Button {
+    public enum status {
+        ALIVE, DEAD
+    }
+
     //Hex code color of the button
     private Color colour;
 
     //Scale of 0-100 of happiness rating
-    private Integer happiness;
-
-    public Button() {
-        this.colour = Color.RED;
-    }
-
-    public Integer getHappy() {
-        return happiness;
-    }
+    private Float happiness;
 
     public String getFace() {
         if (happiness > 80) {
@@ -43,8 +44,12 @@ public class Button {
         }
     }
 
-    public void setHappy(Integer happiness) {
-        this.happiness = happiness;
+    public Float getHappy() {
+        return happiness;
+    }
+
+    public void setHappy(Float happiness) {
+        this.happiness = max(happiness, 0);
     }
 
     public String getColor() {
