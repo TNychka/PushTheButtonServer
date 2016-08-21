@@ -7,19 +7,46 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.joda.time.DateTime;
 
+import java.util.Date;
+
 /**
  * Created by Tyler on 2016-08-12.
  */
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
 public class GameSession {
 
     private DateTime lastUpdated;
     private Button button;
+    private GameUtils.GameStatus gameStatus;
+
     private final float happinessDecay = 2f; //change in happiness per second
-    private GameUtils.GameStatus gameStatus = GameUtils.GameStatus.ENDED;
+    private final float maxHappiness = 100f;
+
+
+    public GameSession(DateTime lastUpdated,
+                       Button button,
+                       GameUtils.GameStatus gameStatus){
+
+        if (button == null) {
+            this.lastUpdated = DateTime.now();
+        } else {
+            this.lastUpdated = lastUpdated;
+        }
+
+        if (button == null) {
+            this.button = new Button();
+        } else {
+            this.button = button;
+        }
+
+        if (gameStatus == null) {
+            this.gameStatus = GameUtils.GameStatus.INPROGRESS;
+        } else {
+            this.gameStatus = gameStatus;
+        }
+    }
 
     public DateTime getLastUpdated() {
         return lastUpdated;
@@ -35,6 +62,10 @@ public class GameSession {
 
     public Float getHappinessDecay() {
         return happinessDecay;
+    }
+
+    public Float getMaxHappiness() {
+        return maxHappiness;
     }
 
     public GameUtils.GameStatus getGameStatus(){

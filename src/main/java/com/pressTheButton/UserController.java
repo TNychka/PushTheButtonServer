@@ -29,19 +29,16 @@ public class UserController {
     private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @RequestMapping("/")
-    public ResponseEntity<String> home(HttpServletRequest req) {
-        if (stormpathApp.getAccount(req) == null) {
-            return ResponseEntity.ok("Hey, just a reminder to login!");
-        }
-        return ResponseEntity.ok("Thanks for logging in! :)");
+    public ResponseEntity<Void> home(HttpServletRequest req) {
+        return ResponseEntity.ok(null);
     }
 
     @RequestMapping(value = "/userInfo", method = RequestMethod.GET)
-    public ResponseEntity<String> user(HttpServletRequest req) {
+    public ResponseEntity<Account> user(HttpServletRequest req) {
         Account account = stormpathApp.getAccount(req);
         if (account == null) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok(account.getFullName());
+        return ResponseEntity.ok(account);
     }
 }

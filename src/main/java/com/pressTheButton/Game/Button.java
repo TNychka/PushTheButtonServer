@@ -14,7 +14,7 @@ import static java.lang.Float.max;
  */
 
 public class Button {
-    public enum status {
+    public enum ButtonStatus {
         ALIVE, DEAD
     }
 
@@ -23,6 +23,14 @@ public class Button {
 
     //Scale of 0-100 of happiness rating
     private Float happiness;
+
+    private ButtonStatus buttonStatus;
+
+    public Button() {
+        this.happiness = 100.0f;
+        this.setColour("random");
+        this.buttonStatus = ButtonStatus.ALIVE;
+    }
 
     public String getFace() {
         if (happiness > 80) {
