@@ -6,6 +6,6 @@ Currently hosted at on heroku at
 https://fierce-savannah-51444.herokuapp.com/
 
 ### Technologies used:
-Springboot
-Stormpath
-Heroku
+Springboot  
+Stormpath  
+Heroku  
