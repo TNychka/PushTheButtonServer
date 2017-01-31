@@ -6,6 +6,7 @@ import com.pressTheButton.Game.Button;
 import com.pressTheButton.Game.GameSession;
 import com.pressTheButton.utils.GameUtils;
 import com.stormpath.sdk.account.Account;
+import com.stormpath.sdk.directory.CustomData;
 import groovy.util.logging.Slf4j;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -13,14 +14,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.IllegalFormatException;
+import java.util.List;
 
 /**
  * Created by Tyler on 2016-08-20.
@@ -136,11 +135,19 @@ public class GameController {
         return getGame(req);
     }
 
+    @RequestMapping(value = "/setNewScore", method = RequestMethod.POST)
+    private ResponseEntity<String> getLeaderBoard(HttpServletRequest req, @RequestParam int score) {
+        Account account = stormpathApp.getAccount(req);
+        String requestedSessionId = req.getRequestedSessionId();
+        ResponseEntity<CustomData> leaderBoard = getLeaderBoard(req);
 
+        return ResponseEntity.ok("ok");
+    }
 
     @RequestMapping(value = "/getLeaderBoard", method = RequestMethod.GET)
-    private ResponseEntity<String> getLeaderBoard(HttpServletRequest req) {
+    private ResponseEntity<CustomData> getLeaderBoard(HttpServletRequest req) {
         Account account = stormpathApp.getAccount(req);
-        return ResponseEntity.ok(account.getUsername());
+        CustomData customData = account.getCustomData();
+        return ResponseEntity.ok(customData);
     }
 }
