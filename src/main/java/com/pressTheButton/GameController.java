@@ -1,5 +1,6 @@
 package com.pressTheButton;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pressTheButton.Auth.StormpathApp;
 import com.pressTheButton.Game.Button;
@@ -9,6 +10,8 @@ import com.stormpath.sdk.account.Account;
 import com.stormpath.sdk.directory.CustomData;
 import groovy.util.logging.Slf4j;
 import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +21,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.IllegalFormatException;
 import java.util.List;
+
+import static com.stormpath.sdk.servlet.filter.DefaultFilter.account;
 
 /**
  * Created by Tyler on 2016-08-20.
@@ -35,6 +41,9 @@ public class GameController {
     @Autowired
     private GameUtils gameUtils;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @RequestMapping(value = "/startGame", method = RequestMethod.GET)
@@ -42,7 +51,7 @@ public class GameController {
         Account account = stormpathApp.getAccount(req);
         log.info("Initiating game for user {}", account.getUsername());
         GameUtils.GameStatus gameStatus = getGameStatus(req).getBody();
-        if(gameStatus == null || gameStatus.equals(GameUtils.GameStatus.ENDED)) {
+        if (gameStatus == null || gameStatus.equals(GameUtils.GameStatus.ENDED)) {
             GameSession newGame = new GameSession(DateTime.now(), new Button(), GameUtils.GameStatus.INPROGRESS);
             account.getCustomData().put("GameSession", newGame);
             account.getCustomData().put("GameStatus", GameUtils.GameStatus.INPROGRESS);
@@ -77,7 +86,7 @@ public class GameController {
         Account account = stormpathApp.getAccount(req);
         log.info("Retrieving user {} game", account.getUsername());
         GameUtils.GameStatus gameStatus = getGameStatus(req).getBody();
-        if(gameStatus == null) {
+        if (gameStatus == null) {
             log.info("Game was ended user {} game", account.getUsername());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
@@ -106,6 +115,7 @@ public class GameController {
 
     /**
      * update the user's current game on the server side
+     *
      * @Header boost how much happiness to add to the button's score
      * @Header currentHappiness the value to update the button to, overrides boost
      */
@@ -136,18 +146,45 @@ public class GameController {
     }
 
     @RequestMapping(value = "/setNewScore", method = RequestMethod.POST)
-    private ResponseEntity<String> getLeaderBoard(HttpServletRequest req, @RequestParam int score) {
+    private ResponseEntity<JSONObject> getLeaderBoard(HttpServletRequest req, @RequestParam int score) {
         Account account = stormpathApp.getAccount(req);
-        String requestedSessionId = req.getRequestedSessionId();
-        ResponseEntity<CustomData> leaderBoard = getLeaderBoard(req);
+        CustomData customData = account.getCustomData();
+        JSONObject leaderboard;
+        try {
+            String temp = objectMapper.writeValueAsString(customData.get("Leaderboard"));
+            leaderboard = new JSONObject(temp);
 
-        return ResponseEntity.ok("ok");
+        } catch (JsonProcessingException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        if (leaderboard.length() > 5) {
+            for (int i = 0; i < leaderboard.length(); i++) {
+                int leaderboardScore = leaderboard.getInt(String.valueOf(i));
+                if (score > leaderboardScore) {
+                    leaderboard.put(String.valueOf(i), score);
+                }
+            }
+        } else {
+            int i;
+            int leaderboardScore;
+            for (i = 0; i < leaderboard.length(); i++) {
+                leaderboardScore = leaderboard.getInt(String.valueOf(i));
+                if (score > leaderboardScore) {
+                    leaderboard = leaderboard.put(String.valueOf(i), score);
+                    score = leaderboardScore;
+                }
+            }
+            leaderboard = leaderboard.put(String.valueOf(i), score);
+        }
+        customData.put("Leaderboard", leaderboard);
+        account.save();
+        return ResponseEntity.ok(leaderboard);
     }
 
     @RequestMapping(value = "/getLeaderBoard", method = RequestMethod.GET)
-    private ResponseEntity<CustomData> getLeaderBoard(HttpServletRequest req) {
+    private ResponseEntity<Object> getLeaderBoard(HttpServletRequest req) {
         Account account = stormpathApp.getAccount(req);
         CustomData customData = account.getCustomData();
-        return ResponseEntity.ok(customData);
+        return ResponseEntity.ok(customData.get("Leaderboard"));
     }
 }
