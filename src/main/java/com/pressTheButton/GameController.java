@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.Map;
 
 import static com.stormpath.sdk.servlet.filter.DefaultFilter.account;
 
@@ -146,15 +147,18 @@ public class GameController {
     }
 
     @RequestMapping(value = "/setNewScore", method = RequestMethod.POST)
-    private ResponseEntity<JSONObject> getLeaderBoard(HttpServletRequest req, @RequestParam int score) {
+    private ResponseEntity<String> getLeaderBoard(HttpServletRequest req, @RequestParam int score) {
         Account account = stormpathApp.getAccount(req);
         CustomData customData = account.getCustomData();
         JSONObject leaderboard;
         try {
-            String temp = objectMapper.writeValueAsString(customData.get("Leaderboard"));
-            leaderboard = new JSONObject(temp);
-
-        } catch (JsonProcessingException e) {
+            Object data = customData.get("Leaderboard");
+            if (data == null) {
+                leaderboard = new JSONObject();
+            } else {
+                leaderboard = new JSONObject(data.toString());
+            }
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         if (leaderboard.length() > 5) {
@@ -176,9 +180,9 @@ public class GameController {
             }
             leaderboard = leaderboard.put(String.valueOf(i), score);
         }
-        customData.put("Leaderboard", leaderboard);
+        customData.put("Leaderboard", leaderboard.toString());
         account.save();
-        return ResponseEntity.ok(leaderboard);
+        return ResponseEntity.ok(leaderboard.toString());
     }
 
     @RequestMapping(value = "/getLeaderBoard", method = RequestMethod.GET)
