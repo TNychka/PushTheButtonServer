@@ -1,3 +1,4 @@
 .idea/**
 target/
 **/apiKey*
+.DS_Store
