@@ -149,8 +149,8 @@ public class GameController {
     @RequestMapping(value = "/setNewScore", method = RequestMethod.POST)
     private ResponseEntity<String> getLeaderBoard(HttpServletRequest req, @RequestParam int score) {
         Account account = stormpathApp.getAccount(req);
-        CustomData customData = account.getCustomData();
         JSONObject leaderboard;
+        CustomData customData = account.getCustomData();
         try {
             Object data = customData.get("Leaderboard");
             if (data == null) {
@@ -159,7 +159,7 @@ public class GameController {
                 leaderboard = new JSONObject(data.toString());
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            leaderboard = new JSONObject();
         }
         if (leaderboard.length() > 5) {
             for (int i = 0; i < leaderboard.length(); i++) {
