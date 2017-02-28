@@ -186,9 +186,13 @@ public class GameController {
     }
 
     @RequestMapping(value = "/getLeaderBoard", method = RequestMethod.GET)
-    private ResponseEntity<Object> getLeaderBoard(HttpServletRequest req) {
+    private ResponseEntity<String> getLeaderBoard(HttpServletRequest req) {
         Account account = stormpathApp.getAccount(req);
         CustomData customData = account.getCustomData();
-        return ResponseEntity.ok(customData.get("Leaderboard"));
+        Object leaderboard = customData.get("Leaderboard");
+        if (leaderboard == null) {
+            leaderboard = "";
+        }
+        return ResponseEntity.ok(leaderboard.toString());
     }
 }
